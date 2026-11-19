@@ -1,0 +1,28 @@
+# PR：检查配方格式，并对每个底座解一遍依赖（不打包、不需要任何密钥）
+name: check
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: Zmin2003/agycodroid
+          path: app
+          sparse-checkout: devkit
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tools/check-recipes.mjs
+      - run: node tools/ci-build.mjs --devkit app/devkit --dry
+
+# 注意：上游的 audit 任务（tools/audit.mjs 静态审计 + tools/ci-selftest.mjs
+# 在 termux-docker 里实跑 selftest）尚未移植，所以这里只有 check 任务。
+# 移植完 audit.mjs / ci-selftest.mjs 后再把 audit 任务加回来。
